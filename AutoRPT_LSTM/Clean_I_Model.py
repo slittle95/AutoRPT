@@ -392,10 +392,9 @@ class POS:
 
 
     def clean_column(self, input_csv):
-        # Load the CSV file
+        
         df = pd.read_csv(input_csv)
-    
-        # Ensure column POS ID'S exists
+        
         if "POS ID's" not in df.columns:
             #print("Column 'POS ID'S' not found in the CSV file.")
             return
@@ -439,30 +438,30 @@ class Saved_Model:
         print("Model loaded successfully.")
 
         # Load the new CSV data
-        df = pd.read_csv(csv_file, header=0)  # Assumes first row is header
+        df = pd.read_csv(csv_file, header=0)  #Assumes first row is header
 
-        # Extract features (same columns as in training)
-        features = df.iloc[:, [2, 3, 4, 5, 6, 9, 10]].values  # C, D, E, F, G, J
+        #Extract features (same columns as in training)
+        features = df.iloc[:, [2, 3, 4, 5, 6, 9, 10]].values  
 
-        # Normalize using MinMaxScaler (must be the same as training)
+        #Normalize using MinMaxScaler (must be the same as training)
         scaler = MinMaxScaler()
         features = scaler.fit_transform(features)  # Fit only if new, else use saved scaler
 
-        # Reshape for LSTM input
+        #Reshape for LSTM input
         time_steps = 1  # Adjust if needed
         features = features.reshape((features.shape[0], time_steps, features.shape[1]))
 
-            # Make predictions
+            #Make predictions
         raw_predictions = model.predict(features)  # Raw model outputs
         binary_predictions = (raw_predictions > 0.4).astype(int)  # Convert to binary labels
     
-        # Store predictions in the provided dictionary
+        #Store predictions in the provided dictionary
         pred_dict["Prominence"] = [int(pred[0]) for pred in binary_predictions]
         pred_dict["Boundary"] = [int(pred[1]) for pred in binary_predictions]
         pred_dict["Prominence_raw"] = [float(pred[0]) for pred in raw_predictions]
         pred_dict["Boundary_raw"] = [float(pred[1]) for pred in raw_predictions]
         
-            # Save predictions to CSV
+            #Save predictions to CSV
         df["Prominence"] = pred_dict["Prominence"]
         df["Boundary"] = pred_dict["Boundary"]
         df["Prominence_raw"] = pred_dict["Prominence_raw"]
