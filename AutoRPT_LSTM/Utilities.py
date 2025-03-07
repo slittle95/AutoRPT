@@ -169,10 +169,10 @@ class CTG:
             elif tier_name == "Boundary":
                 if 0 <= num <= 0.15:
                     return " "  # Blank space
-                elif 0.16 <= num <= 0.49:
+                elif 0.16 <= num <= 0.29:
                     return "?"
-                elif 0.5 <= num <= 1:
-                    return "["
+                elif 0.3 <= num <= 1:
+                    return "]"
             return match.group()
     
         for line in lines:
