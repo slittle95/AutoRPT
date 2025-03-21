@@ -8,7 +8,7 @@
 
 This project is being developed by a team of undergraduate and graduate students, led by **PI Associate Professor Jonathan Howell** at **Montclair State University**. It is produced in conjunction with research funded by **NSF grant 2316030**, focusing on identifying the prosodic features of **“Three Varieties of English in NJ”**. The tool is designed to streamline the annotation of prosodic events using **Rapid Prosodic Transcription (RPT)**, as outlined by **Cole et al. (2017)**.
 
-### Two versions of the tool
+### Two Versions
 
 There is both a AutoRPT and a AutoRPT_LSTM folder. The AutoRPT folder runs on a RNN framework and is more focused on the automatic annotation of prosodic events. The LSTM folder runs a LSTM framework and is more focused on the bootstrapping of annotations so that they can be reviewed by human annotators.
 
