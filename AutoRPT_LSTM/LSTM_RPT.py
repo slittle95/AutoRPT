@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import Clean_I_Model
 import Clean_P_Model
 import Utilities
-from Utilities import model_join, CTG
+from Utilities import model_join, CTG, Point_Tier
 from Clean_P_Model import Pitch
 from Clean_I_Model import Intensity
 
@@ -34,13 +34,13 @@ def select_files():
         print("No WAV file selected. Exiting.")
         return None, None, None
     
-    tier = input("Enter the tier name in the TextGrid: ")  
+    tier = input("Enter the word tier name in the TextGrid: ")  
 
-    scheme = input("Use RPT annotation as output? (y/n): ")
+    phone_tier = input("Enter the phone tier name in the TextGrid: ")
     
-    return textgrid_path, wav_file_path, tier, scheme
+    return textgrid_path, wav_file_path, tier, phone_tier
 
-def main(Textgrid_path, Wav_file_path, tier, scheme):
+def main(Textgrid_path, Wav_file_path, tier, phone_tier):
     
     wav_file_name = os.path.basename(Wav_file_path)
     wav_to_csv = wav_file_name + "_Predictions.TextGrid"
@@ -60,11 +60,15 @@ def main(Textgrid_path, Wav_file_path, tier, scheme):
     
     CTG.create_textgrid(pred_dict, csv_file, Textgrid_path)
 
-    if scheme == "y":
-        CTG.replace_numbers_in_tiers(csv_file, tiers = ["Prominence", "Boundary"])
+    phone_dict = Point_Tier.phone_data(Textgrid_path, phone_tier)
+
+    CTG.create_point_tier(pred_dict, csv_file, phone_dict)
+
+    #if scheme == "y":
+        #CTG.replace_numbers_in_tiers(csv_file, tiers = ["Prominence", "Boundary"])
 
 if __name__ == "__main__":
-    textgrid_path, wav_file_path, tier, scheme = select_files()
+    textgrid_path, wav_file_path, tier, phone_tier = select_files()
     
-    if textgrid_path and wav_file_path and tier and scheme:
-        main(textgrid_path, wav_file_path, tier, scheme)
+    if textgrid_path and wav_file_path and tier and phone_tier:
+        main(textgrid_path, wav_file_path, tier, phone_tier)
