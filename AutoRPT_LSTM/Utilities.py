@@ -30,7 +30,9 @@ class model_join:
             "Prominence": [],
             "Boundary": [],
             "start": [],
-            "end": []
+            "end": [],
+            "Prominence_label": [],
+            "Boundary_label" : []
         }
 
         while i <= total_max:
@@ -145,65 +147,153 @@ class CTG:
         
         tg.save(output_file, format="long_textgrid", includeBlankSpaces=True)
 
-    
 
-    def replace_numbers_in_tiers(textgrid_path, tiers=["Prominence", "Boundary"]):
-        with open(textgrid_path, "r", encoding="utf-8") as file:
-         lines = file.readlines()
-    
-        in_target_tier = False
-        current_tier = None
-        modified_lines = []
-        tier_pattern = re.compile(r'\s*name\s*=\s*"(.*?)"')
-        number_pattern = re.compile(r'\b0\.\d+\b|\b1\.0\b')
-    
-        def replace_number(match, tier_name):
-            num = float(match.group())
-            if tier_name == "Prominence":
-                if 0 <= num <= 0.4:
-                    return " "  # Blank space
-                elif 0.41 <= num <= 0.7:
-                    return "?"
-                elif 0.71 <= num <= 1:
-                    return "*"
-            elif tier_name == "Boundary":
-                if 0 <= num <= 0.15:
-                    return " "  # Blank space
-                elif 0.16 <= num <= 0.29:
-                    return "?"
-                elif 0.3 <= num <= 1:
-                    return "]"
-            return match.group()
-    
-        for line in lines:
-            match = tier_pattern.search(line)
-            if match:
-                current_tier = match.group(1)
-                in_target_tier = current_tier in tiers
+
+
+    def create_point_tier(final_dict, textgrid_path, phone_data):
+        tg = textgrid.openTextgrid(textgrid_path, includeEmptyIntervals=True)
+
+        tier = next((t for t in tg.tiers if t.name == "Text"), None)
+
+        if tier is None:
+            print("Text tier not found")
+            return
         
-            if in_target_tier:
-                line = number_pattern.sub(lambda m: replace_number(m, current_tier), line)
+        intervals = tier.entries
+        if not intervals:
+            print("No intervals in tier")
+            return
         
-            modified_lines.append(line)
+        
+        min_t = intervals[0].start
+        max_t = intervals[-1].end
+
+        time_stamps = {}
+
+        for idx, element in enumerate(final_dict["Prominence"]):
+            if 0.41 <= element <= 0.7:
+                point = Point_Tier.point_tier_setup(final_dict["start"][idx], final_dict["end"][idx], phone_data, "Prominence")
+                time_stamps[point] = "*?"
+
+            elif 0.71 <= element <= 1:
+                point = Point_Tier.point_tier_setup(final_dict["start"][idx], final_dict["end"][idx], phone_data, "Prominence")
+                time_stamps[point] = "*"
+
+        for idx, element in enumerate(final_dict["Boundary"]):
+            if 0.16 <= element <= 0.29:
+                point = Point_Tier.point_tier_setup(final_dict["start"][idx], final_dict["end"][idx], phone_data, "Boundary")
+                time_stamps[point] = "]?"
+
+            elif 0.3 <= element <= 1:
+                point = Point_Tier.point_tier_setup(final_dict["start"][idx], final_dict["end"][idx], phone_data, "Boundary")
+                time_stamps[point] = "]"
+
+
+        sorted_time_stamps = [(k, time_stamps[k]) for k in sorted(time_stamps)]
+
+        point_tier = textgrid.PointTier("RPT", sorted_time_stamps, minT=min_t, maxT = max_t)
+
+
+        if phone_data["Start"] and phone_data["End"]:
+            phone_tier = textgrid.IntervalTier("phone", [], minT=min_t, maxT= max_t)
+
+            for start, end, text in zip(phone_data["Start"], phone_data["End"], phone_data["Text"]):
+                phone_tier.insertEntry((float(start), float(end), str(text)))
+
+        else:
+            print("Phone tier is empty")
+
+        tg.addTier(phone_tier)
+
+        tg.addTier(point_tier)
+
+        tg.save(textgrid_path, format="long_textgrid", includeBlankSpaces=True)
+
+                
+        
+
+from praatio import textgrid   
+import re     
+import tgt
+
+
+class Point_Tier:
+
+    import re
     
-        with open(textgrid_path, "w", encoding="utf-8") as file:
-            file.writelines(modified_lines)
+    @staticmethod
+    def phone_data(Textgrid_path, phone_tier):
+
+        
+    # Load the TextGrid file using `tgt`
+        tgt_text_grid = tgt.io.read_textgrid(Textgrid_path)
+
+    # Find the specified tier
+        tier = next((t for t in tgt_text_grid.tiers if t.name == phone_tier), None)
+
+        if tier is None:
+
+            return None  # Or raise an error if needed
+
+    # Create the interval dictionary
+        interval_dict = {"Start": [], "End": [], "Text": []}
+
+    # Extract data from annotations
+        for annotation in tier.annotations:
+            interval_dict["Start"].append(annotation.start_time)
+            interval_dict["End"].append(annotation.end_time)
+            interval_dict["Text"].append(annotation.text)
+
+        return interval_dict  # Returns the same structure as before
     
-        #print(f"Numbers in tiers {tiers} replaced based on the given ranges in {textgrid_path}")
+    @staticmethod
 
+    def point_tier_setup(start_time, end_time, phone_dict, type):
+        if start_time in phone_dict["Start"]:
+            j = phone_dict["Start"].index(start_time)
+        else:
+            print(f"Warning: start_time {start_time} not found in phone_dict['Start']")
+            return None
+    
+        continue_loop = True
+        temp = {"Start": [], "End": [], "Text": []}
 
-        
+        while continue_loop:
+            if j >= len(phone_dict["Start"]):  # Ensure j does not go out of range
+                break
 
-        
+            pd_start = phone_dict["Start"][j]
+            pd_end = phone_dict["End"][j]
+            pd_text = phone_dict["Text"][j]
 
+            if pd_start >= start_time and pd_end <= end_time:
+                temp["Start"].append(pd_start)
+                temp["End"].append(pd_end)
+                temp["Text"].append(pd_text)
+                j += 1  # Move to the next index
+            else:
+                continue_loop = False  # Stop looping if outside range
 
+        if not temp["Text"]:
+            print(f"Warning: No matching intervals for start_time {start_time}")
+            return None  # Or another fallback value
 
+        stress_index = min(
+            range(len(temp["Text"])), 
+            key=lambda i: 0 if '1' in temp["Text"][i] else float('inf'),
+            default = None
+        )
 
-# In[1]:
+        if stress_index is None:
+            print(f"Warning: Could not find valid min_index for start_time {start_time}")
+            return None
 
+        low_start = temp["Start"][stress_index]
+        low_end = temp["End"][stress_index]
 
-# In[ ]:
+        if type == "Prominence":
+            point_time = (low_start + low_end) / 2
+        else:
+            point_time = end_time #Changed to end_time to put ] to match at end of larger interval (words not phones)
 
-
-
-
+        return point_time
