@@ -212,20 +212,6 @@ class FileProcessor:
                     dict_iterable +=1
                     error_arr.append(dict_iterable)
         
-            #Predict Prosidic event
-            #if high > (average + (pitch_std_dev * 2)):
-            #    P = "Yes"
-           # else:
-           #     P = "No"
-        
-           # print("Pitch Summary:")
-           # print("Low:", low, "|High:", high, "|Average:", average, "|Standard Deviation:", pitch_std_dev )
-           # print("The total average pitch so far is: ", total_average)
-           # print("Prosodic Event Prediction:", P)
-           # print("\n")
-        
-       # print(interval_data)
-        
         return interval_data, error_count, error_arr
 
 
@@ -471,14 +457,6 @@ class Saved_Model:
         df.to_csv(csv_file, index=False)
         
         return pred_dict
-        # Print the predictions dictionary
-        #print("Predictions Dictionary:", pred_dict)
-
-        # Optionally return or save the dictionary
-        # You can save this to a JSON file if needed:
-        # import json
-        # with open("predictions.json", "w") as f:
-        #     json.dump(pred_dict, f)
 
 
 # # Playtest
