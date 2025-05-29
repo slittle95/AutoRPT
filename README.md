@@ -83,7 +83,7 @@ The key dependencies for AutoRPT are:
 Once the dependencies are installed, you can run AutoRPT with the following command:
 
 ```bash
-python AutoRPT.py
+python LSTM_RPT.py
 ```
 
 AutoRPT will then start processing and annotating prosodic features based on the input data.
