@@ -14,7 +14,7 @@ There is both an AutoRPT and an AutoRPT_LSTM folder. The AutoRPT folder runs on 
 
 ### Why We Built This Tool
 
-1. **Limited Corpora for Specific Varieties**: Few corpora (with the exception of **CORAAL**) include **African American English (AAE)** and **Latinae English (LE)**.
+1. **Limited Corpora for Specific Varieties**: Few corpora (with the exception of **CORAAL**) include **African American English (AAE)** and **Latine English (LE)**.
 2. **Lack of Prosodic Annotations**: Even fewer corpora provide prosodic annotations for these varieties of English.
 3. **Incomplete Annotation Schemes**: Current annotation schemes often do not account for the unique prosodic features of AAE and LE.
 4. **Challenges in Crowdsourcing**: Annotating prosody through crowdsourcing methods can be difficult and inconsistent.
@@ -25,11 +25,11 @@ AutoRPT is currently trained on the **Boston University Radio Corpus**, which se
 
 ### Prosodic Event Annotation and Detection in Three Varieties of English
 
-AutoRPT is part of ongoing research into the detection of prosodic events across the following varieties:
+AutoRPT is part of ongoing research into the detection of prosodic events across the following varieties (as spoken in New Jersey):
 
 - **Mainstream American English (MAE)**
 - **African American English (AAE)**
-- **Latine English (LE)** (as spoken in New Jersey)
+- **Latine English (LE)** 
 
 ---
 
@@ -90,7 +90,7 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 
 Choose whether you want to run the (RNN) AutoRPT or the AutoRPT_LSTM and navigate into that folder.
 
-##LSTM:
+## LSTM:
 You can then run AutoRPT with the following command:
 
 ```bash
@@ -101,7 +101,7 @@ AutoRPT will then start processing and annotating prosodic features based on the
 
 ---
 
-##AutoRPT:
+## AutoRPT:
 Example of how to call the tool:
 ![](/AutoRPT/CMD_Use_Instructions/AutoRPTCMDEx.jpeg)
 The example path is in green. Start typing after the >.
@@ -127,119 +127,124 @@ C:\YourFilePath\AutoRPT>python AutoRPT.py --textgrid "YourTextgridFile.TextGrid"
 ---
 ### Script Breakdown
 
-####LSTM_RPT
+#### LSTM_RPT
 Requires: os, tkinter, praatio, sys, Clean_I_Model, Clean_P_Model, Utilities
 
-Description: Opens a file dialog to select TextGrid and WAV files, creates tiers in the TextGrid in which it marks suspected boundary and prominence and labels them with confidence percentages.
+Description: "Main" file. Opens a file dialog to select TextGrid and WAV files, creates tiers in the TextGrid in which it marks suspected boundary and prominence and labels them with confidence percentages.
 
 Functions:
 * select_files() - Opens a file dialog to select TextGrid and WAV files. Requests tier names from user. Returns file paths and tier names.
-* main(Textgrid_path, Wav_file_path, tier, phone_tier) - Creates tiers and places prosody annotations and confidence degrees from RPT functions in them. No returns.
+* main(Path Textgrid_path, Path Wav_file_path, String tier, String phone_tier) - Creates tiers and places prosody annotations and confidence degrees from RPT functions in them. Calls all the other main functions: Pitch.run, Intensity.run, model_join.dict_merge, CTG.create_textgrid, Point_Tier.phone_data, CTG.create_point_tier. No returns.
 
-####Clean_I_Model
+If __main__: calls select_files to get user input, passes that input to main.
+
+#### Clean_I_Model
 
 Requires: parselmouth, tgt, numpy, spacy, pandas, re, os, tensorflow.keras.models, sklearn.preprocessing, sys, csv, datetime
 
 Description: Defines and runs a number of functions related to intensity measures. 
 
-Class IntensityExtraction Functions:
-* getIntensity(self, Wav_file, start_time, end_time) - Gets intensity of an interval.
-* getMaxIntensity(self, intensity_full) - Gets maximum intensity of a file.
-* getMinIntensity(self, intensity_full) - Gets minimum intensity of a file.
-* getSTDIntensity(self, intensity_full) - Gets standard deviation of intensity of a file.
-* getAverageIntensity(self, intensity_full) - Gets arithmetic mean of intensity of a file.
+Class IntensityExtraction functions:
+* getIntensity(self, Wav_file: [parselmouth.Sound object](https://parselmouth.readthedocs.io/en/latest/api/parselmouth.Sound.html#parselmouth.Sound). start_time: float, end_time: float) - Returns intensity as a [parselmouth.Intensity object](https://parselmouth.readthedocs.io/en/latest/api/parselmouth.Intensity.html) 
+* getMaxIntensity(self, intensity_full: parselmouth.Intensity) - Returns maximum intensity of a file as a float.
+* getMinIntensity(self, intensity_full: parselmouth.Intensity) - Returns minimum intensity of a file as a float.
+* getSTDIntensity(self, intensity_full: parselmouth.Intensity) - Returns standard deviation of intensity of a file as a float.
+* getAverageIntensity(self, intensity_full: parselmouth.Intensity) - Returns arithmetic mean of intensity of a file as a float.
 
-Class FileProcessorIntensity Functions:
-* __init__(self) - 
-* iterateTextGridforIntensity(self, TextGrid_path, tier_name, Wav_file) - Creates array Interval_data, iterates through intervals of specified TextGrid tier, and runs calculations. Returns array interval_data, int error_count, and array error_arr.
+Class FileProcessorIntensity functions:
+* __init__(self) - Runs model by itself calling IntensityExtraction().
+* iterateTextGridforIntensity(self, TextGrid_path: str, tier_name: str, Wav_file: parselmouth.Sound object) - Creates array Interval_data, iterates through intervals of specified TextGrid tier, and runs calculations. Returns dict interval_data, int error_count, and array error_arr. Calls all IntensityExtraction functions.
 
-Class SpeakerNormalization Functions:
-* fileMean(self, interval_data, arr) - Takes arr and returns the average of the values
-* fileStd(self, interval_data, avg, arr) - Takes arr and average and returns Standard Deviation (Std) of the values
-* fileMin(self, interval_data, arr) - Takes arr and returns the minimum value
-* fileMax(self, interval_data, arr) - Takes arr and returns the maximum value
-* zScoreAppend(self, interval_data, avg, std, arr) - Takes arr, average, Std and appends the Z-score to dict
-* getZScore(self, key, avg, std) - Takes a specific value and finds the Z-score.
+Class SpeakerNormalization functions:
+N.B. For all of the below functions: interval_data is a dict mapping strings to arrays. arr is a string representing the dict key to select the array.
+* fileMean(self, interval_data: dict, arr: str) - Takes arr and returns the average of the values
+* fileStd(self, interval_data: dict, avg: float, arr: str) - Takes arr and average and returns Standard Deviation (Std) of the values
+* fileMin(self, interval_data: dict, arr: str) - Takes arr and returns the minimum value
+* fileMax(self, interval_data: dict, arr: str) - Takes arr and returns the maximum value
+* zScoreAppend(self, interval_data: dict, avg: float, std: float, arr: str) - Takes arr, average, standard deviation and returns the dict with Z-score appended.
+* getZScore(self, key: number, avg: float, std: float) - Takes a specific value and returns the Z-score.
 
-Class IntensityFormatToInterval Functions:
-* dictToArr(self, arr) - Converts dictionary to array.
-* outputArr(self, arr) - Prints array.
+Class IntensityFormatToInterval functions:
+* dictToArr(self, arr: dict) - Converts dictionary to array.
+* outputArr(self, arr: array) - Prints array.
 
-Class IntensityFormatting Functions:
-* to_csv(self, data, csv_file) - Creates CSV file out of array and saves it. No returns.
+Class IntensityFormatting functions:
+* to_csv(self, data: array, csv_file: str [path]) - Creates CSV file out of array and saves it. No returns.
 
 Class context functions:
-* contextWindow(self, complete_data) - 
+* contextWindow(self, complete_data: dictionary) - 
 
 Class POS functions:
-* add_pos_column_with_pandas(self, input_csv, text_column_name="Text", new_column_name="POS ID's") - Generates POS tags from spaCy model and saves to provided CSV file.
-* clean_column(self, input_csv) - Keeps only the first number from part of speech IDs.
+* add_pos_column_with_pandas(self, input_csv: str [path], text_column_name: str="Text", new_column_name: str="POS ID's") - Generates POS tags from spaCy model and saves to provided CSV file.
+* clean_column(self, input_csv: str [path]) - Keeps only the first number from part of speech IDs.
 * extract_first_number(cell) - defined inside clean_column
 
 Class Saved_Model functions:
-* intensity_model(self, csv_file, pred_dict) -  Loads model, extracts and normalizes input data, makes predictions, and writes to dictionary. Returns dictionary pred_dict.
+* intensity_model(self, csv_file: str [path], pred_dict: dict) -  Loads model, extracts and normalizes input data, makes predictions, and writes to dictionary. Returns dictionary pred_dict.
 
 Class Intensity functions:
-* run(tier_name, Textgrid_path, Wav_file_path) - Creates Sound object, does calculations on data, and exports the resulting dict.
+* run(tier_name: str, Textgrid_path: str[path], Wav_file_path: str[path]) - Creates Sound object, does calculations on data, and exports the resulting dict. Calls FileProcessorIntensity.IterateTextGridforIntensity, all SpeakerNormalization except getZScore, IntensityFormatToInterval.dictToArr, all IntensityFormatting, all context, all POS, all Saved_Model functions.
 
-####Clean_P_Model
+#### Clean_P_Model
 
-Requires: parselmouth, tgt, numpy, spacy, pandas, re, os, tensorflow.keras.models, sklearn.preprocessing, sys, csv, datetime
+Requires: parselmouth, tgt, numpy, csv, spacy, pandas, re, os, tensorflow.keras.models, sklearn.preprocessing, datetime
 
 Description: Defines and runs a number of functions related to pitch measures. 
 
-Class PitchExtraction Functions:
-* getMaxPitch(self, Wav_file, start_time, end_time) - Gets maximum pitch of a file.
-* getMinPitch(self, Wav_file, start_time, end_time) - Gets minimum pitch of a file.
-* getPitchStandardDeviation(self, Wav_file, start_time, end_time) - Gets standard deviation of pitch of a file.
-* getAveragePitch(self, Wav_file, start_time, end_time) - Gets arithmetic mean of pitch of an interval.
+Class PitchExtraction functions:
+N.B. an important intermediate data structure is the [parselmouth.Pitch object](https://parselmouth.readthedocs.io/en/latest/api/parselmouth.Pitch.html#parselmouth.Pitch).
+* getMaxPitch(self, Wav_file: parselmouth.Sound object, start_time: float, end_time: float) - Returns maximum pitch of a file.
+* getMinPitch(self, Wav_file: parselmouth.Sound object, start_time: float, end_time: float) - Returns minimum pitch of a file.
+* getPitchStandardDeviation(self, Wav_file: parselmouth.Sound object, start_time: float, end_time: float) - Returns standard deviation of pitch of a file.
+* getAveragePitch(self, Wav_file: parselmouth.Sound object, start_time: float, end_time: float) - Returns arithmetic mean of pitch of an interval.
 
-Class SpeakerNormalization Functions:
-* fileMean(self, interval_data, arr) - Takes arr and returns the average of the values
-* fileStd(self, interval_data, avg, arr) - Takes arr and average and returns Standard Deviation (Std) of the values
-* fileMin(self, interval_data, arr) - Takes arr and returns the minimum value
-* fileMax(self, interval_data, arr) - Takes arr and returns the maximum value
-* zScoreAppend(self, interval_data, avg, std, arr) - Takes arr, average, Std and appends the Z-score to dict
-* getZScore(self, key, avg, std) - Takes a specific value and finds the Z-score.
+Class SpeakerNormalization functions:
+N.B. For all of the below functions: interval_data is a dict mapping strings to arrays. arr is a string representing the dict key to select the array.
+* fileMean(self, interval_data: dict, arr: str) - Takes arr and returns the average of the values
+* fileStd(self, interval_data: dict, avg: float, arr: str) - Takes arr and average and returns Standard Deviation (Std) of the values
+* fileMin(self, interval_data: dict, arr: str) - Takes arr and returns the minimum value
+* fileMax(self, interval_data: dict, arr: str) - Takes arr and returns the maximum value
+* zScoreAppend(self, interval_data: dict, avg: float, std: float, arr: str) - Takes arr, average, standard deviation and returns the dict with Z-score appended.
+* getZScore(self, key: number, avg: float, std: float) - Takes a specific value and returns the Z-score.
 
-Class FileProcessor Functions:
+Class FileProcessor functions:
 * __init__(self) - Runs model by itself calling PitchExtraction()
-* iterateTextGridforPitch(self, TextGrid_path, tier_name, Wav_file) - Creates array Interval_data, iterates through intervals of specified TextGrid tier, and runs calculations. Returns array interval_data, int error_count, and array error_arr.
+* iterateTextGridforPitch(self, TextGrid_path: str, tier_name: str, Wav_file: parselmouth.Sound object) - Creates array Interval_data, iterates through intervals of specified TextGrid tier, and runs calculations. Returns array interval_data, int error_count, and array error_arr. Calls all PitchExtraction methods.
   
-Class FormatToInterval Functions:
-* dictToArr(self, arr) - Converts dictionary to array.
-* outputArr(self, arr) - Prints array.
+Class FormatToInterval functions:
+* dictToArr(self, arr: dict) - Converts dictionary to array.
+* outputArr(self, arr: array) - Prints array.
 
-Class Formatting Functions:
-* to_csv(self, data, csv_file) - Creates CSV file out of array and saves it. No returns.
+Class Formatting functions:
+* to_csv(self, data: array, csv_file: str [path]) - Creates CSV file out of array and saves it. No returns.
 
 Class plswrk functions:
-* contextWindow(self, complete_data) - 
+* contextWindow(self, complete_data: dictionary) - 
 
 Class POS functions:
-* add_pos_column_with_pandas(self, input_csv, text_column_name="Text", new_column_name="POS ID's") - Generates POS tags from spaCy model and saves to provided CSV file.
-* clean_column(self, input_csv) - Keeps only the first number from part of speech IDs.
+* add_pos_column_with_pandas(self, input_csv: str [path], text_column_name: str="Text", new_column_name: str="POS ID's") - Generates POS tags from spaCy model and saves to provided CSV file.
+* clean_column(self, input_csv: str [path]) - Keeps only the first number from part of speech IDs.
 * extract_first_number(cell) - defined inside clean_column
 
 Class Saved_Model functions:
-* pitch_model(self, csv_file, pred_dict) -  Loads model, extracts and normalizes input data, makes predictions, and writes to dictionary. Returns dictionary pred_dict.
+* pitch_model(self, csv_file: str [path], pred_dict: dict) -  Loads model, extracts and normalizes input data, makes predictions, and writes to dictionary. Returns dictionary pred_dict.
 
 Class Pitch functions:
-* run(tier_name, Textgrid_path, Wav_file_path) - Creates Sound object, does calculations on data, and exports the resulting dict.
+* run(tier_name: str, Textgrid_path: str[path], Wav_file_path: str[path]) - Creates Sound object, does calculations on data, and exports the resulting dict. Calls FileProcessor.IterateTextGridforPitch, all SpeakerNormalization except getZScore, FormatToInterval.dictToArr, all Formatting, all plswrk, all POS, all Saved_Model functions.
 
-####Utilities
+#### Utilities
 
-Requires: praatio textgrid, re, tgt
+Requires: praatio, re, tgt
 
-Description:  
+Description: Contains the functions doing the heavy lifting. Merges dictionaries, creates textgrid with tiers, populates. 
 
 Class model_join functions:
-* static dict_merge(p_dict, i_dict)
+* static dict_merge(p_dict: dict, i_dict: dict) - Merges pitch and intensity dictionaries.
 
 Class CTG functions:
-* create_textgrid(final_dict, output_file, reference_textgrid)
-* create_point_tier(final_dict, textgrid_path, phone_data)
+* create_textgrid(final_dict: dict, output_file: str [path], reference_textgrid: textgrid.Textgrid object) - Creates a TextGrid object with text, prominence, and boundary tiers. Populates with information from final_dict.
+* create_point_tier(final_dict: dict, textgrid_path: str [path], phone_data: str) - Creates point tier in provided textgrid and adds prosody markings according to final_dict. Calls point_tier_setup.
 
 Class Point_Tier functions:
-* static phone_data(Textgrid_path, phone_tier)
-* static point_tier_setup(start_time, end_time, phone_dict, type)
+* static phone_data(Textgrid_path: str[path], phone_tier: str) - Creates dictionary from textgrid interval data
+* static point_tier_setup(start_time: float, end_time: float, phone_dict: dict, type: string literal ['Prominence', 'Boundary'])
