@@ -172,7 +172,7 @@ Class IntensityFormatting functions:
 * to_csv(self, data: array, csv_file: str [path]) - Creates CSV file out of array and saves it. No returns.
 
 Class context functions:
-* contextWindow(self, complete_data: dictionary) - 
+* contextWindow(self, complete_data: dictionary) - allows for only local context as opposed to the total context that the speaker normalization class would gather. 
 
 Class POS functions:
 * add_pos_column_with_pandas(self, input_csv: str [path], text_column_name: str="Text", new_column_name: str="POS ID's") - Generates POS tags from spaCy model and saves to provided CSV file.
@@ -219,7 +219,7 @@ Class Formatting functions:
 * to_csv(self, data: array, csv_file: str [path]) - Creates CSV file out of array and saves it. No returns.
 
 Class plswrk functions:
-* contextWindow(self, complete_data: dictionary) - 
+* contextWindow(self, complete_data: dictionary) - allows for only local context as opposed to the total context that the speaker normalization class would gather. 
 
 Class POS functions:
 * add_pos_column_with_pandas(self, input_csv: str [path], text_column_name: str="Text", new_column_name: str="POS ID's") - Generates POS tags from spaCy model and saves to provided CSV file.
