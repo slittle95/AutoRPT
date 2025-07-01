@@ -80,9 +80,10 @@ The key dependencies for AutoRPT are:
 4. **Pandas**: A powerful data manipulation and analysis library.
 5. **PyTorch**: An open-source deep learning framework, used for building and training machine learning models.
 
-If you get an error installing PyTorch, go to https://pytorch.org/, scroll to Install PyTorch, and follow its instructions to generate the correct script to run. For me, it was:
+#### Model Pipeline
+Finally, install the model.
 ```bash
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+python -m spacy download en_core_web_sm
 ```
 
 
@@ -90,18 +91,20 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 
 Choose whether you want to run the (RNN) AutoRPT or the AutoRPT_LSTM and navigate into that folder.
 
-## LSTM:
+#### LSTM:
 You can then run AutoRPT with the following command:
 
 ```bash
 python LSTM_RPT.py
 ```
+A file selection window will appear prompting you to select your TextGrid file. Select a file and press Open. Another selection window will appear prompting you to select a WAV file. Select a file and press Open.
 
+Return to the command line or terminal and follow the instructions. 
 AutoRPT will then start processing and annotating prosodic features based on the input data.
 
 ---
 
-## AutoRPT:
+#### AutoRPT:
 Example of how to call the tool:
 ![](/AutoRPT/CMD_Use_Instructions/AutoRPTCMDEx.jpeg)
 The example path is in green. Start typing after the >.
