@@ -128,7 +128,7 @@ C:\YourFilePath>cd AutoRPT
 C:\YourFilePath\AutoRPT>python AutoRPT.py --textgrid "YourTextgridFile.TextGrid" --wav "YourWavFile.wav" --tier "YourTierName"
 
 ---
-### Script Breakdown
+## Script Breakdown
 
 #### LSTM_RPT
 Requires: os, tkinter, praatio, sys, Clean_I_Model, Clean_P_Model, Utilities
@@ -174,7 +174,7 @@ Class IntensityFormatToInterval functions:
 Class IntensityFormatting functions:
 * to_csv(self, data: array, csv_file: str [path]) - Creates CSV file out of array and saves it. No returns.
 
-Class context functions:
+Class Context functions:
 * contextWindow(self, complete_data: dictionary) - allows for only local context as opposed to the total context that the speaker normalization class would gather. 
 
 Class POS functions:
@@ -221,7 +221,7 @@ Class FormatToInterval functions:
 Class Formatting functions:
 * to_csv(self, data: array, csv_file: str [path]) - Creates CSV file out of array and saves it. No returns.
 
-Class plswrk functions:
+Class Context functions:
 * contextWindow(self, complete_data: dictionary) - allows for only local context as opposed to the total context that the speaker normalization class would gather. 
 
 Class POS functions:
@@ -250,4 +250,4 @@ Class CTG functions:
 
 Class Point_Tier functions:
 * static phone_data(Textgrid_path: str[path], phone_tier: str) - Creates dictionary from textgrid interval data
-* static point_tier_setup(start_time: float, end_time: float, phone_dict: dict, type: string literal ['Prominence', 'Boundary'])
+* static point_tier_setup(start_time: float, end_time: float, phone_dict: dict, type: string literal ['Prominence', 'Boundary']) - Returns float point_time.
