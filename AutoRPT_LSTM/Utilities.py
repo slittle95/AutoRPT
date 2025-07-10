@@ -8,6 +8,9 @@ class model_join:
     
     @staticmethod
     def dict_merge(p_dict, i_dict):
+        # Merges pitch and intensity dictionaries.
+        # Args: p_dict: dict, i_dict: dict. Returns: final_dict dict
+        
         p_intervals = p_dict["Interval"]
         i_intervals = i_dict["Interval"]
         p_start = p_dict["start"]
@@ -113,6 +116,12 @@ class CTG:
     
     
     def create_textgrid(final_dict, output_file, reference_textgrid):
+        """
+        # Creates a TextGrid object with text, prominence, and boundary tiers.
+        # Populates with information from final_dict.
+        # Args: final_dict: dict, output_file: str [path], reference_textgrid: textgrid.Textgrid object
+        # Returns: None
+        """
         
         tg = textgrid.Textgrid()
         
@@ -151,8 +160,11 @@ class CTG:
 
 
     def create_point_tier(final_dict, textgrid_path, phone_data):
+        # Creates point tier in provided textgrid and adds prosody markings according to final_dict.
+        # Args: final_dict: dict, textgrid_path: str [path], phone_data: str
+        # Returns: None
+        
         tg = textgrid.openTextgrid(textgrid_path, includeEmptyIntervals=True)
-
         tier = next((t for t in tg.tiers if t.name == "Text"), None)
 
         if tier is None:
@@ -204,9 +216,7 @@ class CTG:
             print("Phone tier is empty")
 
         tg.addTier(phone_tier)
-
         tg.addTier(point_tier)
-
         tg.save(textgrid_path, format="long_textgrid", includeBlankSpaces=True)
 
                 
@@ -223,8 +233,10 @@ class Point_Tier:
     
     @staticmethod
     def phone_data(Textgrid_path, phone_tier):
-
-        
+        # Creates dictionary from textgrid interval data
+        # Args: Textgrid_path: str[path], phone_tier: str
+        # Returns: dict interval_dict
+       
     # Load the TextGrid file using `tgt`
         tgt_text_grid = tgt.io.read_textgrid(Textgrid_path)
 
@@ -245,10 +257,14 @@ class Point_Tier:
             interval_dict["Text"].append(annotation.text)
 
         return interval_dict  # Returns the same structure as before
+
     
     @staticmethod
-
     def point_tier_setup(start_time, end_time, phone_dict, type):
+        # Reads interval data from dictionary
+        # Args: start_time: float, end_time: float, phone_dict: dict, type: string literal ['Prominence', 'Boundary']
+        # Returns: float point_time
+
         if start_time in phone_dict["Start"]:
             j = phone_dict["Start"].index(start_time)
         else:

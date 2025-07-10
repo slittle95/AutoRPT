@@ -11,21 +11,25 @@ import tgt
 import numpy as np
 
 class PitchExtraction:
-    
+
+    # Returns maximum pitch of a file.
+    # Args: Wav_file: parselmouth.Sound object, start_time: float, end_time: float
     def getMaxPitch(self, Wav_file, start_time, end_time):
         sub_sound = Wav_file.extract_part(from_time=start_time, to_time=end_time)
         pitch = sub_sound.to_pitch()
         max_pitch = max(pitch.selected_array['frequency'])
         return max_pitch
 
-    #Grabbing min pitch for interval
+    # Grabbing min pitch for interval
+    # Args: Wav_file: parselmouth.Sound object, start_time: float, end_time: float
     def getMinPitch(self, Wav_file, start_time, end_time):
         sub_sound = Wav_file.extract_part(from_time = start_time, to_time = end_time)
         pitch = sub_sound.to_pitch()
         min_pitch = min(pitch.selected_array['frequency'])
         return min_pitch
 
-    #Calculate Standard Deviation
+    # Calculate Standard Deviation
+    # Wav_file: parselmouth.Sound object, start_time: float, end_time: float
     def getPitchStandardDeviation(self, Wav_file, start_time, end_time):
         sub_sound = Wav_file.extract_part(from_time=start_time, to_time=end_time)
         pitch = sub_sound.to_pitch()
@@ -33,7 +37,8 @@ class PitchExtraction:
         pitch_std_dev = np.std(pitch_values)
         return pitch_std_dev
 
-    #Calculate average of pitch in interval
+    # Calculate average of pitch in interval
+    # Wav_file: parselmouth.Sound object, start_time: float, end_time: float
     def getAveragePitch(self, Wav_file, start_time, end_time):
         sub_sound = Wav_file.extract_part(from_time=start_time, to_time=end_time)
         pitch = sub_sound.to_pitch()
@@ -53,8 +58,13 @@ import numpy as np
 
 
 class SpeakerNormalization:
+    """
+    N.B. For all of the below functions: interval_data is a dict mapping strings to arrays.
+    arr is a string representing the dict key to select the array.
+    """
 
     #Takes arr and returns the average of the values
+    # Args: interval_data: dict, arr: str
     def fileMean(self, interval_data, arr):
         mean_sum = 0
         mean_n = len(interval_data[arr])
@@ -65,7 +75,8 @@ class SpeakerNormalization:
         
         return file_avg
     
-    #Takes arr and average and returns Standard Deviation (Std) of the values
+    # Takes arr and average and returns Standard Deviation (Std) of the values
+    # Args: interval_data: dict, avg: float, arr: str
     def fileStd(self, interval_data, avg, arr):
         
         mean_n = len(interval_data[arr])
@@ -82,21 +93,24 @@ class SpeakerNormalization:
         
         return file_std
     
-    #Takes arr and returns the minimum value
+    # Takes arr and returns the minimum value
+    # Args: interval_data: dict, arr: str
     def fileMin(self, interval_data, arr):
     
         file_min = min(interval_data[arr])
         
         return file_min
     
-    #Takes arr and returns the maximum value
+    # Takes arr and returns the maximum value
+    # Args: interval_data: dict, arr: str
     def fileMax(self, interval_data, arr):
     
         file_max = max(interval_data[arr])
     
         return file_max
     
-    #Takes arr, average, Std and appends the Z-score to dict
+    # Takes arr, average, Std and appends the Z-score to dict
+    # Args: interval_data: dict, avg: float, std: float, arr: str
     def zScoreAppend(self, interval_data, avg, std, arr):
     
         for value in interval_data[arr]:
@@ -108,6 +122,8 @@ class SpeakerNormalization:
         return interval_data
     
     def getZScore(self, key, avg, std):
+        # Takes a specific value and returns the Z-score. Not used.
+        # Args: key: number, avg: float, std: float
         z_score = (key - avg) / std
         return z_score
 
@@ -128,8 +144,10 @@ class FileProcessor:
 
     
     def iterateTextGridforPitch(self, TextGrid_path, tier_name, Wav_file):
+        # Creates array Interval_data, iterates through intervals of specified TextGrid tier, and runs calculations.
+        # Args: TextGrid_path: str, tier_name: str, Wav_file: parselmouth.Sound object
+        # Returns: array interval_data, int error_count, and array error_arr
     
-
         error_count = 0
         error_arr = []
         #Create Dictionary
@@ -223,6 +241,8 @@ class FileProcessor:
 class FormatToInterval:
     
     def dictToArr(self, arr):
+        # Converts dictionary to array.
+        # Args- arr: dict. Returns array tier_arrays.
         
         tier_arrays = []
         
@@ -249,7 +269,8 @@ class FormatToInterval:
         return tier_arrays
 
     def outputArr(self, arr):
-        
+        # Prints array.
+        # Args: arr: array   
         for i, array in enumerate(arr):
             print(array)
 
@@ -263,11 +284,13 @@ import csv
 
 class Formatting():
     def to_csv(self, data, csv_file):
+        # Creates CSV file out of array and saves it.
+        # Args: data: array, csv_file: str [path]. Returns: none
+        
         # Specify the CSV file name
         csv_directory = os.path.dirname(csv_file)
         if not os.path.exists(csv_directory):
-            os.makedirs(csv_directory)
-        
+            os.makedirs(csv_directory)      
         
         # Write the sub-arrays to the CSV file
         with open(csv_file, 'w', newline='') as csvfile:
@@ -285,9 +308,12 @@ class Formatting():
 # In[6]:
 
 
-class plswrk:
+class Context:
     
     def contextWindow(self, complete_data):
+        # allows for only local context as opposed to the
+        # total context that the speaker normalization class would gather.
+        # Args: complete_data: dictionary. Returns the same.
     
         f = -3
         g = -2
@@ -361,6 +387,9 @@ import re
 class POS:
 
     def add_pos_column_with_pandas(self, input_csv, text_column_name="Text", new_column_name="POS ID's"):
+        # Generates POS tags from spaCy model and saves to provided CSV file.
+        # Args: input_csv: str [path], text_column_name: str="Text", new_column_name: str="POS ID's"
+        # Returns: none
        
         nlp = spacy.load("en_core_web_sm")  # Load the spaCy model
     
@@ -381,6 +410,9 @@ class POS:
 
 
     def clean_column(self, input_csv):
+        # Keeps only the first number from part of speech IDs.
+        # Args: input_csv: str [path]. No returns.
+        
         # Load the CSV file
         df = pd.read_csv(input_csv)
     
@@ -412,51 +444,62 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
+import traceback
 
 
 class Saved_Model:
     
     def pitch_model(self, csv_file, pred_dict):
+        # Loads model, extracts and normalizes input data, makes predictions, and writes to dictionary.
+        # Args: csv_file: str [path], pred_dict: dict
+        # Returns: pred_dict: dict
+        
         # Load the trained model
         working_dir = os.getcwd()
         folder_name = "Model_paths"
         folder_path = os.path.join(working_dir, folder_name)
         model_save_path = os.path.join(folder_path, "Pitch_LSTM_model.h5")
-        model = load_model(model_save_path)
-        print("Model loaded successfully.")
+        # print(model_save_path)
+        try:
+            model = load_model(model_save_path)
+        except:
+            print("Model did not load.")
+            print(traceback.format_exc())
+        else:
+            print("Model loaded successfully.")
 
-        # Load the new CSV data
-        df = pd.read_csv(csv_file, header=0)  # Assumes first row is header
+            # Load the new CSV data
+            df = pd.read_csv(csv_file, header=0)  # Assumes first row is header
 
-        # Extract features (same columns as in training)
-        features = df.iloc[:, [2, 3, 4, 5, 6, 9, 10]].values  # C, D, E, F, G, J
+            # Extract features (same columns as in training)
+            features = df.iloc[:, [2, 3, 4, 5, 6, 9, 10]].values  # C, D, E, F, G, J
 
-        # Normalize using MinMaxScaler (must be the same as training)
-        scaler = MinMaxScaler()
-        features = scaler.fit_transform(features)  # Fit only if new, else use saved scaler
+            # Normalize using MinMaxScaler (must be the same as training)
+            scaler = MinMaxScaler()
+            features = scaler.fit_transform(features)  # Fit only if new, else use saved scaler
 
-        # Reshape for LSTM input
-        time_steps = 1  # Adjust if needed
-        features = features.reshape((features.shape[0], time_steps, features.shape[1]))
+            # Reshape for LSTM input
+            time_steps = 1  # Adjust if needed
+            features = features.reshape((features.shape[0], time_steps, features.shape[1]))
 
             # Make predictions
-        raw_predictions = model.predict(features)  # Raw model outputs
-        binary_predictions = (raw_predictions > 0.4).astype(int)  # Convert to binary labels
-    
-        # Store predictions in the provided dictionary
-        pred_dict["Prominence"] = [int(pred[0]) for pred in binary_predictions]
-        pred_dict["Boundary"] = [int(pred[1]) for pred in binary_predictions]
-        pred_dict["Prominence_raw"] = [float(pred[0]) for pred in raw_predictions]
-        pred_dict["Boundary_raw"] = [float(pred[1]) for pred in raw_predictions]
+            raw_predictions = model.predict(features)  # Raw model outputs
+            binary_predictions = (raw_predictions > 0.4).astype(int)  # Convert to binary labels
         
+            # Store predictions in the provided dictionary
+            pred_dict["Prominence"] = [int(pred[0]) for pred in binary_predictions]
+            pred_dict["Boundary"] = [int(pred[1]) for pred in binary_predictions]
+            pred_dict["Prominence_raw"] = [float(pred[0]) for pred in raw_predictions]
+            pred_dict["Boundary_raw"] = [float(pred[1]) for pred in raw_predictions]
+            
             # Save predictions to CSV
-        df["Prominence"] = pred_dict["Prominence"]
-        df["Boundary"] = pred_dict["Boundary"]
-        df["Prominence_raw"] = pred_dict["Prominence_raw"]
-        df["Boundary_raw"] = pred_dict["Boundary_raw"]
-        df.to_csv(csv_file, index=False)
-        
-        return pred_dict
+            df["Prominence"] = pred_dict["Prominence"]
+            df["Boundary"] = pred_dict["Boundary"]
+            df["Prominence_raw"] = pred_dict["Prominence_raw"]
+            df["Boundary_raw"] = pred_dict["Boundary_raw"]
+            df.to_csv(csv_file, index=False)
+            
+            return pred_dict
 
 
 # # Playtest
@@ -474,15 +517,17 @@ import os
 class Pitch:
     
     def run(tier_name, Textgrid_path, Wav_file_path):
+        # Creates Sound object, does calculations on data, and exports the resulting dict.
+        # Args: tier_name: str, Textgrid_path: str[path], Wav_file_path: str[path]
+        # Returns: dict final_intensity_data
 
         #Work Environment
-
         fp = FileProcessor()
         pe = PitchExtraction()
         spn = SpeakerNormalization()
         fti = FormatToInterval()
         fo = Formatting()
-        pw = plswrk()
+        cx = Context()
         pos = POS()
         sm = Saved_Model()
         
@@ -504,7 +549,7 @@ class Pitch:
         file_max = spn.fileMax(data, "max")
         complete_data = spn.zScoreAppend(data, file_mean, file_std, "max")
                 
-        full_complete_data = pw.contextWindow(complete_data)
+        full_complete_data = cx.contextWindow(complete_data)
 
         tier_arrays = fti.dictToArr(full_complete_data)
 
