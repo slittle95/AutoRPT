@@ -11,25 +11,36 @@ import tgt
 import numpy as np
 
 class IntensityExtraction:
+    """ Various functions to analyze intensity. """
     
     def getIntensity(self, Wav_file, start_time, end_time):
+        # Args: parselmouth.Sound object Wav_file, float start_time, float end_time
+        # Returns: parselmouth.Intensity object
         interval_file = Wav_file.extract_part(from_time=start_time, to_time=end_time)
         intensity = interval_file.to_intensity()
         return intensity
 
     def getMaxIntensity(self, intensity_full):
+        # Args: parselmouth.Intensity object intensity_full
+        # Returns: float intensity_max
         intensity_max = np.max(intensity_full)
         return intensity_max
 
     def getMinIntensity(self, intensity_full):
+        # Args: parselmouth.Intensity object intensity_full
+        # Returns: float intensity_min
         intensity_min = np.min(intensity_full)
         return intensity_min
 
     def getSTDIntensity(self, intensity_full):
+        # Args: parselmouth.Intensity object intensity_full
+        # Returns: float intensity_std
         intensity_std = np.std(intensity_full)
         return intensity_std
 
     def getAverageIntensity(self, intensity_full):
+        # Args: parselmouth.Intensity object intensity_full
+        # Returns: float intensity_mean
         intensity_mean = np.mean(intensity_full)
         return intensity_mean
 
@@ -48,11 +59,17 @@ class FileProcessorIntensity:
     
 
     def __init__(self):
+        # Runs model by itself calling IntensityExtraction().
         self.ie = IntensityExtraction()
 
     
     def iterateTextGridforIntensity(self, TextGrid_path, tier_name, Wav_file):
-    
+        """
+        Creates array Interval_data, iterates through intervals of specified TextGrid tier, and runs
+        calculations. Calls all IntensityExtraction functions.
+        Args: TextGrid_path: str, tier_name: str, Wav_file: parselmouth.Sound object.
+        Returns: dict interval_data, int error_count, and array error_arr. 
+        """
         error_count = 0
         error_arr = []
         #Create Dictionary
@@ -151,8 +168,14 @@ import tgt
 import numpy as np
 
 class SpeakerNormalization:
+    """
+    N.B. For all of the below functions: interval_data is a dict mapping strings to arrays.
+    arr is a string representing the dict key to select the array.
+    """
 
     #Takes arr and returns the average of the values
+    # Args: dict interval_data, str arr
+    # Returns float file_avg
     def fileMean(self, interval_data, arr):
         mean_sum = 0
         mean_n = len(interval_data[arr])
@@ -164,6 +187,8 @@ class SpeakerNormalization:
         return file_avg
     
     #Takes arr and average and returns Standard Deviation (Std) of the values
+    # Args: dict interval_data, string arr, float avg
+    # Returns float file_std
     def fileStd(self, interval_data, avg, arr):
         
         mean_n = len(interval_data[arr])
@@ -181,6 +206,8 @@ class SpeakerNormalization:
         return file_std
     
     #Takes arr and returns the minimum value
+    # Args: dict interval_data, str arr
+    # Returns float file_min
     def fileMin(self, interval_data, arr):
     
         file_min = min(interval_data[arr])
@@ -188,6 +215,8 @@ class SpeakerNormalization:
         return file_min
     
     #Takes arr and returns the maximum value
+    # Args: dict interval_data, str arr
+    # Returns float file_max
     def fileMax(self, interval_data, arr):
     
         file_max = max(interval_data[arr])
@@ -195,6 +224,8 @@ class SpeakerNormalization:
         return file_max
     
     #Takes arr, average, Std and appends the Z-score to dict
+    # Args: dict interval_data, str arr, float std, float avg
+    # Returns float dict interval_data
     def zScoreAppend(self, interval_data, avg, std, arr):
     
         for value in interval_data[arr]:
@@ -206,6 +237,9 @@ class SpeakerNormalization:
         return interval_data
     
     def getZScore(self, key, avg, std):
+        # Not used. Takes a specific value and returns the Z-score.
+        # Args: key: number, avg: float, std: float
+        # Returns float z_score
         z_score = (key - avg) / std
         return z_score
 
@@ -218,7 +252,7 @@ class SpeakerNormalization:
 class IntensityFormatToInterval:
     
     def dictToArr(self, arr):
-        
+        # Converts dictionary to array. Args: Dictionary arr. Returns Array tier_arrays.
         tier_arrays = []
         
         # Initialize first array with formatting
@@ -244,7 +278,9 @@ class IntensityFormatToInterval:
         return tier_arrays
 
     def outputArr(self, arr):
-        
+        # Prints array.
+        # Args: arr: array
+        # Returns: none.        
         for i, array in enumerate(arr):
             print(array)
 
@@ -258,6 +294,9 @@ import csv
 
 class IntensityFormatting():
     def to_csv(self, data, csv_file):
+        # Args: data: array, csv_file: str [path])
+        # Creates CSV file out of array and saves it. No returns.
+        
         # Specify the CSV file name
         csv_directory = os.path.dirname(csv_file)
         if not os.path.exists(csv_directory):
@@ -280,9 +319,12 @@ class IntensityFormatting():
 # In[6]:
 
 
-class context:
+class Context:
     
     def contextWindow(self, complete_data):
+        # allows for only local context as opposed to the total
+        # context that the speaker normalization class would gather.
+        # Args: Dictionary complete_data. Returns: the same.
     
         f = -3
         g = -2
@@ -356,6 +398,9 @@ import re
 class POS:
 
     def add_pos_column_with_pandas(self, input_csv, text_column_name="Text", new_column_name="POS ID's"):
+        # Generates Part of Speech tags from spaCy model and saves to provided CSV file.
+        # Args: input_csv: str [path], text_column_name: str="Text", new_column_name: str="POS ID's"
+        # Returns: None
        
         nlp = spacy.load("en_core_web_sm")  # Load the spaCy model
     
@@ -376,15 +421,20 @@ class POS:
 
 
     def clean_column(self, input_csv):
+        # Keeps only the first number from part of speech IDs.
+        # Args: input_csv: str [path]
+        # Returns: none
         
         df = pd.read_csv(input_csv)
         
         if "POS ID's" not in df.columns:
-            #print("Column 'POS ID'S' not found in the CSV file.")
+            print("Column 'POS ID'S' not found in the CSV file.")
             return
     
-        # Function to extract only the first number from a cell
+        
         def extract_first_number(cell):
+            # Function to extract only the first number from a cell
+            
             numbers = re.findall(r'\d+', str(cell))  # Find all numbers
             return numbers[0] if numbers else cell   # Keep only the first number
     
@@ -413,13 +463,22 @@ import sys
 class Saved_Model:
     
     def intensity_model(self, csv_file, pred_dict):
+        # Loads model, extracts and normalizes input data, makes predictions, and writes to dictionary.
+        # Args: csv_file: str [path], pred_dict: dict
+        # Returns: dictionary pred_dict.
+        
         # Load the trained model
         working_dir = os.getcwd()
         folder_name = "Model_paths"
         folder_path = os.path.join(working_dir, folder_name)
         model_save_path = os.path.join(folder_path, "Intensity_LSTM_model.h5")
-        model = load_model(model_save_path)
-        print("Model loaded successfully.")
+        try:
+            model = load_model(model_save_path)
+        except:
+            print("Model did not load.")
+            print(traceback.format_exc())
+        else:
+            print("Model loaded successfully.")
 
         # Load the new CSV data
         df = pd.read_csv(csv_file, header=0)  #Assumes first row is header
@@ -475,16 +534,17 @@ import os
 class Intensity:
     
     def run(tier_name, Textgrid_path, Wav_file_path):
+        # Creates Sound object, does calculations on data, and exports the resulting dict.
+        # Args: tier_name: str, Textgrid_path: str[path], Wav_file_path: str[path]
+        # Returns: dict final_intensity_data
         
-
         #Work Environment
-
         fpi = FileProcessorIntensity()
         ie = IntensityExtraction()
         spn = SpeakerNormalization()
         ifti = IntensityFormatToInterval()
         ifo = IntensityFormatting()
-        cx = context()
+        cx = Context()
         pos = POS()
         sm = Saved_Model()
 
