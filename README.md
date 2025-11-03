@@ -97,6 +97,11 @@ You can then run AutoRPT with the following command:
 ```bash
 python LSTM_RPT.py
 ```
+(If you prefer to work in Idle, open the venv and run 
+```bash
+python -m idlelib.idle
+```
+then open LSTM_RPT and run)
 A file selection window will appear prompting you to select your TextGrid file. Select a file and press Open. Another selection window will appear prompting you to select a WAV file. Select a file and press Open.
 
 Return to the command line or terminal and follow the instructions. 
