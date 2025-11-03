@@ -513,6 +513,7 @@ import tgt
 import numpy as np
 import datetime
 import os
+from Utilities import *
 
 class Pitch:
     
@@ -535,7 +536,8 @@ class Pitch:
         wav_file_name_woe = os.path.splitext(wav_file_name)[0]
         wav_to_csv = wav_file_name_woe + "_Pitch.csv"
         current_path = os.getcwd()
-        csv_path = os.path.join(current_path, "CSV_output")
+        #csv_path = os.path.join(current_path, "CSV_output")
+        csv_path = os.path.join(os.path.dirname(Wav_file_path), "CSV_output")
         csv_file = os.path.join(csv_path, wav_to_csv)
         
         Wav_file = parselmouth.Sound(Wav_file_path)
@@ -551,11 +553,11 @@ class Pitch:
                 
         full_complete_data = cx.contextWindow(complete_data)
 
-        tier_arrays = fti.dictToArr(full_complete_data)
+        tier_arrays = fo.dictToArr(full_complete_data)
 
         #print("\n")
 
-        fo.to_csv(tier_arrays, csv_file)
+        mto_csv(tier_arrays, csv_file)
                 
         pos.add_pos_column_with_pandas(csv_file, text_column_name="Text", new_column_name="POS ID's")
                 

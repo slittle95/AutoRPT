@@ -2,8 +2,64 @@
 # coding: utf-8
 
 # In[ ]:
+import os
+import traceback
+import csv
 
+def mto_csv(data, csv_file):
+        # Creates CSV file out of array and saves it.
+        # Args: data: array, csv_file: str [path]. Returns: none
+        
+        # Specify the CSV file name
+        csv_directory = os.path.dirname(csv_file)
+        if not os.path.exists(csv_directory):
+            os.makedirs(csv_directory)      
+        
+        # Write the sub-arrays to the CSV file
+        with open(csv_file, 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+    
+            # Iterate through the sub-arrays and write each element in separate columns
+            for sub_array in data:
+                 csv_writer.writerow(sub_array)
 
+        print(f'Data has been written to {csv_file}.')
+
+        
+def mdictToArr(d):
+    # Converts dictionary to array.
+    # Args- d: dict
+    # Returns array arr.
+
+    # Initialize first array with formatting
+    arr = []
+    ordered_keys = [k for k in d.keys()]
+    print(d.keys())
+    print(ordered_keys)
+    formatter = {"STD": "Standard Deviation", "Std": "Standard Deviation", "Z-SCORE": "Z-Score", "dur": "Duration"}
+    # header = x from columns but in title case unless x is in formatter, then use value from formatter
+    header = [x.title() if x not in formatter.keys() else formatter[x] for x in ordered_keys]
+    print(header)
+    arr.append(header)
+    
+    # Create User-Output Array
+    # for every number in range of d, row=d[column][number]
+    for i in range(len(d["Interval"])):
+        arr.append([])
+    for k in ordered_keys:
+        j=1
+        for v in d[k]:
+            arr[j].append(v)
+            j+=1
+    return arr
+
+def moutputArr(arr):
+    # Prints array.
+    # Args: arr: array   
+    for i, array in enumerate(arr):
+        print(array)
+
+import numpy as np
 class model_join:
     
     @staticmethod
@@ -21,8 +77,9 @@ class model_join:
         p_text = p_dict["Text"]
 
         total_max = max(max(p_intervals), max(i_intervals))
+        #print("total_max =",total_max)
             
-        i = 0
+        j = 1
         pitch = 0
         intensity = 0
         
@@ -30,80 +87,84 @@ class model_join:
         final_dict = {
             "Interval": [],
             "Text": [],
+            "Pitch_prominence": [],
+            "Intensity_prominence": [],
             "Prominence": [],
+            "Pitch_boundary": [],
+            "Intensity_boundary": [],
+            "Silence_boundary": [],
             "Boundary": [],
+            "prev_end": [],
             "start": [],
             "end": [],
             "Prominence_label": [],
             "Boundary_label" : []
         }
 
-        while i <= total_max:
-            
-            if i in p_intervals and i in i_intervals:
-                final_dict["Interval"].append(i)
-                
-                i_prom = i_dict["Prominence_raw"][intensity]
+        while j <= total_max:
+            assert j in p_intervals or j in i_intervals, f'{j} in neither interval array'
+            final_dict["Interval"].append(j)
+            if j == 1:
+                prev_end = 0                   
+            else:
+                prev_end = final_dict["end"][-1]
+            final_dict["prev_end"].append(prev_end)
+            prom_values = []
+            bound_values = []
+
+            if j in p_intervals:
+                final_dict["Text"].append(p_text[pitch])
+                starter = p_start[pitch]
+                final_dict["start"].append(starter)
+                final_dict["end"].append(p_end[pitch])
                 p_prom = p_dict["Prominence_raw"][pitch]
-                i_bound = i_dict["Boundary_raw"][intensity]
                 p_bound = p_dict["Boundary_raw"][pitch]
-                
-                text = p_text[pitch]
-                final_dict["Text"].append(text)
-                
-                prom = round((i_prom + p_prom) / 2, 2)
-                bound = round((i_bound + p_bound) / 2, 2)
-                
-                final_dict["Prominence"].append(prom)
-                final_dict["Boundary"].append(bound)
-                
-                final_dict["start"].append(p_start[pitch])
-                final_dict["end"].append(p_end[pitch])
-                
+                final_dict["Pitch_prominence"].append(p_prom)
+                final_dict["Pitch_boundary"].append(p_bound)
+                prom_values.append(p_prom)
+                bound_values.append(p_bound)
                 pitch += 1
-                intensity += 1
-
-            elif i in p_intervals and i not in i_intervals:
-                final_dict["Interval"].append(i)
-                
-                prom = round(p_dict["Prominence_raw"][pitch], 2)
-                bound = round(p_dict["Boundary_raw"][pitch], 2)
-                text = p_text[pitch]
-                
+            else:
+                final_dict["Pitch_prominence"].append('')
+                final_dict["Pitch_boundary"].append('')
+                text = i_text[intensity]
                 final_dict["Text"].append(text)
-                final_dict["Prominence"].append(prom)
-                final_dict["Boundary"].append(bound)
-                
-                final_dict["start"].append(p_start[pitch])
-                final_dict["end"].append(p_end[pitch])
-                
-                pitch += 1
-
-            elif i in i_intervals and i not in p_intervals:
-                final_dict["Interval"].append(i)
-                
-                prom = round(i_dict["Prominence_raw"][intensity], 2)
-                bound = round(i_dict["Boundary_raw"][intensity], 2)
-                text = i_text[intensity]  # Fix: Use `i_text` not `p_text`
-                
-                final_dict["Text"].append(text)
-                final_dict["Prominence"].append(prom)
-                final_dict["Boundary"].append(bound)
-                
-                final_dict["start"].append(i_start[intensity])
+                starter=i_start[intensity]
+                final_dict["start"].append(starter)
                 final_dict["end"].append(i_end[intensity])
-                
+
+            if j in i_intervals: #regardless of p_intervals
+                i_prom = i_dict["Prominence_raw"][intensity] #incrementer used as index
+                i_bound = i_dict["Boundary_raw"][intensity]
+                final_dict["Intensity_prominence"].append(i_prom)
+                final_dict["Intensity_boundary"].append(i_bound)
+                prom_values.append(i_prom)
+                bound_values.append(i_bound)
                 intensity += 1
+            else:
+                final_dict["Intensity_prominence"].append('')
+                final_dict["Intensity_boundary"].append('')
 
-            i += 1  # Always increment i
-        
+            if j < (total_max) and starter > (prev_end + 2):
+                s_bound = 0.9
+            elif j==(total_max):
+                s_bound = 0.9
+            else:
+                s_bound = 0.3
+            if j != 0:
+                 final_dict["Silence_boundary"].append(s_bound)
+            bound_values.append(s_bound)
+
+            #final prominence and boundary numbers
+            prom = round(np.mean(prom_values), 2)
+            bound = round(np.mean(bound_values), 2)              
+            final_dict["Prominence"].append(prom)
+            final_dict["Boundary"].append(bound)
+
+            j += 1  # Always increment j
+        #print(final_dict)
+        print("end model_join")
         return final_dict
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:

@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import Clean_I_Model
 import Clean_P_Model
 import Utilities
-from Utilities import model_join, CTG, Point_Tier
+from Utilities import *
 from Clean_P_Model import Pitch
 from Clean_I_Model import Intensity
 
@@ -120,7 +120,20 @@ def pull_files_from_drive():
 
 
     return textgrid_path, wav_file_path, word_tier, phone_tier
-    
+
+def integration_test1():
+    f = open("pull_files_from_drive.txt")
+    gen_textgrid_path = f.readline()[0:-1]
+    gen_wav_path = f.readline()[0:-1]
+    f.close()
+    word_tier = "92zr - words"
+    phone_tier = "92zr - phones"
+    textgrid_path = os.path.join(gen_textgrid_path, "1213p48mx92zr82pv.TextGrid")
+    wav_file_path = os.path.join(gen_wav_path, "1213p48mx92zr82pv_1.wav")
+    print(textgrid_path)
+    print(wav_file_path)
+    return textgrid_path, wav_file_path, word_tier, phone_tier
+
 def main(Textgrid_path, Wav_file_path, tier, phone_tier):
     # Gets provided metadata from select_data and runs pitch and intensity functions.
     # Args: path-like string textgrid_path, path-like string wav_file_path, string tier, string phone-tier
@@ -130,15 +143,19 @@ def main(Textgrid_path, Wav_file_path, tier, phone_tier):
     wav_to_csv = wav_file_name + "_Predictions.TextGrid"
     
     current_path = os.getcwd()
-    csv_path = os.path.join(current_path, "TextGrid_output")
-    
+    #csv_path = os.path.join(current_path, "TextGrid_output")
+    csv_path = os.path.join(os.path.dirname(Wav_file_path), "TextGrid_output")
+    print("csv_path =",csv_path)
     if not os.path.exists(csv_path):
         os.makedirs(csv_path)
     
     csv_file = os.path.join(csv_path, wav_to_csv)
-    
-    pitch_dict = Pitch.run(tier, Textgrid_path, Wav_file_path)
-    intensity_dict = Intensity.run(tier, Textgrid_path, Wav_file_path)
+
+    try:
+        pitch_dict = Pitch.run(tier, Textgrid_path, Wav_file_path)
+        intensity_dict = Intensity.run(tier, Textgrid_path, Wav_file_path)
+    except:
+        print(traceback.format_exc())
     
     pred_dict = model_join.dict_merge(pitch_dict, intensity_dict)
     
@@ -147,13 +164,18 @@ def main(Textgrid_path, Wav_file_path, tier, phone_tier):
     phone_dict = Point_Tier.phone_data(Textgrid_path, phone_tier)
 
     CTG.create_point_tier(pred_dict, csv_file, phone_dict)
+    printable = mdictToArr(pred_dict)
+    filepath=os.path.join(os.path.dirname(Wav_file_path),"final.csv")
+    mto_csv(data=printable,csv_file=filepath)
+    print("reached end of main")
 
     #if scheme == "y":
         #CTG.replace_numbers_in_tiers(csv_file, tiers = ["Prominence", "Boundary"])
 
 if __name__ == "__main__":
-    textgrid_path, wav_file_path, tier, phone_tier = select_files()
+    #textgrid_path, wav_file_path, tier, phone_tier = select_files()
     #textgrid_path, wav_file_path, tier, phone_tier = pull_files_from_drive()
+    textgrid_path, wav_file_path, tier, phone_tier = integration_test1()
     
     if textgrid_path and wav_file_path and tier and phone_tier:
         main(textgrid_path, wav_file_path, tier, phone_tier)

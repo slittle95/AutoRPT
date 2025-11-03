@@ -458,7 +458,6 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import os
 import sys
-import traceback
 
 
 class Saved_Model:
@@ -530,6 +529,7 @@ import tgt
 import numpy as np
 import datetime
 import os
+from Utilities import *
 
 
 class Intensity:
@@ -553,7 +553,8 @@ class Intensity:
         wav_file_name_woe = os.path.splitext(wav_file_name)[0]
         wav_to_csv = wav_file_name_woe + "_Intensity.csv"
         current_path = os.getcwd()
-        csv_path = os.path.join(current_path, "CSV_output")
+        #csv_path = os.path.join(current_path, "CSV_output")
+        csv_path = os.path.join(os.path.dirname(Wav_file_path), "CSV_output")
         csv_file = os.path.join(csv_path, wav_to_csv)
 
         Wav_file = parselmouth.Sound(Wav_file_path)
@@ -568,11 +569,11 @@ class Intensity:
     
         full_complete_data = cx.contextWindow(complete_data)
 
-        tier_arrays = ifti.dictToArr(full_complete_data)
+        tier_arrays = ifo.dictToArr(full_complete_data)
 
         #print("\n")
 
-        ifo.to_csv(tier_arrays, csv_file)
+        mto_csv(tier_arrays, csv_file)
 
         pos.add_pos_column_with_pandas(csv_file, text_column_name = "Text", new_column_name="POS ID's")
         pos.clean_column(csv_file)
