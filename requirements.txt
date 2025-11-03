@@ -9,4 +9,4 @@ numpy>=1.26.4
 setuptools
 wheel
 spacy>=3.8.4
-tensorflow
+tensorflow>=2.20.0rc0
