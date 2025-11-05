@@ -80,8 +80,8 @@ class model_join:
         #print("total_max =",total_max)
             
         j = 1
-        pitch = 0
-        intensity = 0
+        pitch = 1
+        intensity = 1
         
         # Initialize dictionary lists
         final_dict = {
@@ -94,9 +94,9 @@ class model_join:
             "Intensity_boundary": [],
             "Silence_boundary": [],
             "Boundary": [],
-            "prev_end": [],
             "start": [],
             "end": [],
+            "next_start": []
             "Prominence_label": [],
             "Boundary_label" : []
         }
@@ -104,19 +104,14 @@ class model_join:
         while j <= total_max:
             assert j in p_intervals or j in i_intervals, f'{j} in neither interval array'
             final_dict["Interval"].append(j)
-            if j == 1:
-                prev_end = 0                   
-            else:
-                prev_end = final_dict["end"][-1]
-            final_dict["prev_end"].append(prev_end)
+
             prom_values = []
             bound_values = []
 
             if j in p_intervals:
                 final_dict["Text"].append(p_text[pitch])
-                starter = p_start[pitch]
-                final_dict["start"].append(starter)
-                final_dict["end"].append(p_end[pitch])
+                final_dict["start"].append(p_start[pitch])
+                interval_end = p_end[pitch]
                 p_prom = p_dict["Prominence_raw"][pitch]
                 p_bound = p_dict["Boundary_raw"][pitch]
                 final_dict["Pitch_prominence"].append(p_prom)
@@ -129,9 +124,8 @@ class model_join:
                 final_dict["Pitch_boundary"].append('')
                 text = i_text[intensity]
                 final_dict["Text"].append(text)
-                starter=i_start[intensity]
-                final_dict["start"].append(starter)
-                final_dict["end"].append(i_end[intensity])
+                final_dict["start"].append(p_start[pitch])
+                interval_end = i_end[intensity]
 
             if j in i_intervals: #regardless of p_intervals
                 i_prom = i_dict["Prominence_raw"][intensity] #incrementer used as index
@@ -145,15 +139,19 @@ class model_join:
                 final_dict["Intensity_prominence"].append('')
                 final_dict["Intensity_boundary"].append('')
 
-            if j < (total_max) and starter > (prev_end + 2):
-                s_bound = 0.9
-            elif j==(total_max):
+            final_dict["end"].append(interval_end)
+            if j==total_max:
                 s_bound = 0.9
             else:
-                s_bound = 0.3
-            if j != 0:
-                 final_dict["Silence_boundary"].append(s_bound)
+                next_start = min(p_start[pitch+1], i_start[intensity+1])
+                if interval_end + 2 < next_start:
+                    s_bound = 0.9
+                else:
+                    s_bound = 0.3
+                
+            final_dict["Silence_boundary"].append(s_bound)
             bound_values.append(s_bound)
+            
 
             #final prominence and boundary numbers
             prom = round(np.mean(prom_values), 2)
