@@ -169,6 +169,7 @@ class FileProcessor:
 
         if tier is None:
             print(f"Tier '{tier_name}' not found in the TextGrid.")
+            quit()
             return
 
         #Iterate through intervals on the tier
@@ -517,7 +518,7 @@ from Utilities import *
 
 class Pitch:
     
-    def run(tier_name, Textgrid_path, Wav_file_path):
+    def run(tier_name, Textgrid_path, Wav_file_path,save_path):
         # Creates Sound object, does calculations on data, and exports the resulting dict.
         # Args: tier_name: str, Textgrid_path: str[path], Wav_file_path: str[path]
         # Returns: dict final_intensity_data
@@ -553,7 +554,7 @@ class Pitch:
                 
         full_complete_data = cx.contextWindow(complete_data)
 
-        tier_arrays = fo.dictToArr(full_complete_data)
+        tier_arrays = fti.dictToArr(full_complete_data)
 
         #print("\n")
 
